@@ -533,6 +533,34 @@ backends += files('alc/backends/wave.cpp')
 
 configFiles = []
 
+# See if `git` is available and where it is
+git = find_program('git', required: false)
+# If it was found, encode arguments for version.py
+if git.found()
+	gitParam = ['-g', git]
+else
+	gitParam = []
+endif
+
+# Build version.h so the library can know about the versioning information it needs
+configFiles += custom_target(
+	'version.h',
+	# Find and run our versioning script to generate version.h
+	command: [
+		find_program('version.py', required: true),
+		'-o', '@OUTPUT@',
+		'-i', '@INPUT@',
+		# Generate a tag file containing the `git describe` output to force this to re-run
+		'-v', vcs_tag(
+			command: [git, 'describe', '--always', '--tags', '--dirty'],
+			input: '.version.in',
+			output: '.version',
+		)
+	] + gitParam,
+	input: 'version.h.in',
+	output: 'version.h',
+)
+
 # Build config.h so the library knows its base configuration
 configFiles += configure_file(
 	input: 'config.h.in',
