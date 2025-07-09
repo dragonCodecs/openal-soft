@@ -317,6 +317,20 @@ coreSrcs = files(
 	'core/mixer/mixer_c.cpp',
 )
 
+dbus = dependency(
+	'dbus-1',
+	method: 'pkg-config',
+	required: false
+)
+if dbus.found()
+	coreSrcs += files(
+		'core/dbus_wrap.cpp',
+		'core/rtkit.cpp',
+	)
+	dependencies += dbus
+endif
+config.set10('HAVE_RTKIT', dbus.found())
+
 openALSrcs = files(
 	'al/auxeffectslot.cpp',
 	'al/buffer.cpp',

@@ -1249,7 +1249,7 @@ auto UpdateDeviceParams(al::Device *device, const al::span<const int> attrList) 
     if(!attrList.empty())
     {
         ALenum outmode{ALC_ANY_SOFT};
-        std::optional<bool> opthrtf;
+        std::optional<bool> opthrtf{};
         int freqAttr{};
 
 #define ATTRIBUTE(a) a: TRACE("{} = {}", #a, attrList[attrIdx + 1]);
