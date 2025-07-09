@@ -611,14 +611,18 @@ openAL = library(
 	backends,
 	coreSrcs,
 	configFiles,
-	# cpp_args: [
-	# 	f'-DAL_API=@exportStyle@',
-	# 	f'-DALC_API=@exportStyle@',
-	# ],
+	cpp_args: [
+		'-DAL_ALEXT_PROTOTYPES',
+		'-DAL_BUILD_LIBRARY',
+		'-DOpenAL_EXPORTS',
+		f'-DAL_API=@exportStyle@',
+		f'-DALC_API=@exportStyle@',
+	],
 	cpp_static_args: '-DAL_LIBTYPE_STATIC',
 	include_directories: include_directories(
 		'.',
 		'common',
+		'include',
 	),
 	dependencies: dependencies,
 	pic: true,
