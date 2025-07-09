@@ -115,9 +115,13 @@ else
 endif
 
 haveSSE = cxx.check_header('xmmintrin.h')
+config.set10('HAVE_SSE', haveSSE)
 haveSSE2 = haveSSE and cxx.check_header('emmintrin.h')
+config.set10('HAVE_SSE2', haveSSE2)
 haveSSE3 = haveSSE2 and cxx.check_header('pmmintrin.h')
+config.set10('HAVE_SSE3', haveSSE3)
 haveSSE4_1 = haveSSE3 and cxx.check_header('smmintrin.h')
+config.set10('HAVE_SSE4_1', haveSSE4_1)
 
 haveNEON = cxx.check_header('arm_neon.h') and cxx.compiles('''
 #include <arm_neon.h>
@@ -127,6 +131,19 @@ int main(int, char **)
 	return vgetq_lane_s32(ret4, 0);
 }
 ''')
+config.set10('HAVE_NEON', haveNEON)
+
+if haveSSE2
+	haveSSEIntrinsics = cxx.compiles('''
+#include <emmintrin.h>
+int main()
+{
+	_mm_pause();
+	return 0;
+}
+	''')
+	config.set10('HAVE_SSE_INTRINSICS', haveSSEIntrinsics)
+endif
 
 # Check to see if this system has libm and add it to our dependencies if it does
 libm = cxx.find_library('m', required: false)
@@ -221,22 +238,37 @@ if not isWindows
 	config.set10('HAVE_PTHREAD_NP_H', havePthreadNP)
 	# Check to see if pthread_setname_np exists in an appropriate header
 	if havePthreadNP
-		config.set10(
-			'HAVE_PTHREAD_SETNAME_NP',
-			cxx.has_header_symbol(
-				'pthread_np.h',
-				'pthread_setname_np',
-				prefix: '#include <pthread.h>',
-			)
+		havePthreadSetnameNP = cxx.has_header_symbol(
+			'pthread_np.h',
+			'pthread_setname_np',
+			prefix: '#include <pthread.h>',
 		)
+		config.set10('HAVE_PTHREAD_SETNAME_NP', havePthreadSetnameNP)
+		if not havePthreadSetnameNP
+			config.set10(
+				'HAVE_PTHREAD_SET_NAME_NP',
+				cxx.has_header_symbol(
+					'pthread_np.h',
+					'pthread_set_name_np',
+					prefix: '#include <pthread.h>',
+				)
+			)
+		endif
 	else
-		config.set10(
-			'HAVE_PTHREAD_SETNAME_NP',
-			cxx.has_header_symbol(
-				'pthread.h',
-				'pthread_setname_np',
-			)
+		havePthreadSetnameNP = cxx.has_header_symbol(
+			'pthread.h',
+			'pthread_setname_np',
 		)
+		config.set10('HAVE_PTHREAD_SETNAME_NP', havePthreadSetnameNP)
+		if not havePthreadSetnameNP
+			config.set10(
+				'HAVE_PTHREAD_SET_NAME_NP',
+				cxx.has_header_symbol(
+					'pthread.h',
+					'pthread_set_name_np',
+				)
+			)
+		endif
 	endif
 endif
 
@@ -337,6 +369,22 @@ alcSrcs = files(
 	'alc/events.cpp',
 	'alc/panning.cpp',
 )
+
+if haveSSE
+	coreSrcs += files('core/mixer/mixer_sse.cpp')
+endif
+if haveSSE2
+	coreSrcs += files('core/mixer/mixer_sse2.cpp')
+endif
+if haveSSE3
+	coreSrcs += files('core/mixer/mixer_sse3.cpp')
+endif
+if haveSSE4_1
+	coreSrcs += files('core/mixer/mixer_sse41.cpp')
+endif
+if haveNEON
+	coreSrcs += files('core/mixer/mixer_neon.cpp')
+endif
 
 backends = files(
 	'alc/backends/base.cpp',
