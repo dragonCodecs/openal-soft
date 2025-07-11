@@ -623,6 +623,21 @@ configFiles += custom_target(
 	output: 'version.h',
 )
 
+# Check if we should embed the HRTF data into the library, and if so convert the files
+# into a suitable format
+
+# If we're building for Android, set up to use 16KiB pages if possible
+if host_machine.system() == 'android'
+	add_project_arguments('-D__BIONIC_NO_PAGE_SIZE_MACRO', language: 'cpp')
+	add_project_link_arguments(
+		cxx.get_supported_link_arguments(
+			'-Wl,-z,max-page-size=16384'
+		),
+		language: 'cpp'
+	)
+endif
+
+
 # Build config.h so the library knows its base configuration
 configFiles += configure_file(
 	input: 'config.h.in',
@@ -666,7 +681,7 @@ endif
 
 # Build the main library and all the backends etc
 openAL = library(
-	'OpenAL',
+	libName,
 	commonSrcs,
 	openALSrcs,
 	alcSrcs,
