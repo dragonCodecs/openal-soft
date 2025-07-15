@@ -38,6 +38,10 @@ dependencies = [fmt]
 # Check to see if we're building for Windows
 isWindows = host_machine.system() == 'windows'
 
+# Extract build options that are used repeatatively
+buildUtils = get_option('utils')
+buildExamples = get_option('examples')
+
 # If we are building for Windows, then add a bunch of defines that are neded globally
 if isWindows
 	add_project_arguments(
@@ -408,192 +412,259 @@ backends = files(
 	'alc/backends/null.cpp',
 )
 
-# Check to see if we can enable the PipeWire backend
-pipewire = dependency(
-	'libpipewire-0.3',
-	version: '>=0.3.23',
-	method: 'pkg-config',
-	required: false
-)
-if pipewire.found()
-	backends += files('alc/backends/pipewire.cpp')
-	dependencies += pipewire
+backendPipeWire = get_option('al_backend_pipewire')
+if backendPipeWire.allowed()
+	# Check to see if we can enable the PipeWire backend
+	pipewire = dependency(
+		'libpipewire-0.3',
+		version: '>=0.3.23',
+		method: 'pkg-config',
+		required: backendPipeWire.enabled(),
+	)
+	if pipewire.found()
+		backends += files('alc/backends/pipewire.cpp')
+		dependencies += pipewire
+	endif
+	config.set10('HAVE_PIPEWIRE', pipewire.found())
 endif
-config.set10('HAVE_PIPEWIRE', pipewire.found())
 
-# Check to see if we can enable the PulseAudio backend
-pulseAudio = dependency(
-	'libpulse',
-	method: 'pkg-config',
-	required: false
-)
-if pulseAudio.found()
-	backends += files('alc/backends/pulseaudio.cpp')
-	dependencies += pulseAudio
+backendPulseAudio = get_option('al_backend_pulseaudio')
+if backendPulseAudio.allowed()
+	# Check to see if we can enable the PulseAudio backend
+	pulseAudio = dependency(
+		'libpulse',
+		method: 'pkg-config',
+		required: backendPulseAudio.enabled(),
+	)
+	if pulseAudio.found()
+		backends += files('alc/backends/pulseaudio.cpp')
+		dependencies += pulseAudio
+	endif
+	config.set10('HAVE_PULSEAUDIO', pulseAudio.found())
 endif
-config.set10('HAVE_PULSEAUDIO', pulseAudio.found())
 
 if not isWindows
-	# Check to see if we can enable the ALSA backend
-	alsa = dependency(
-		'alsa',
-		method: 'pkg-config',
-		required: false
-	)
-	if alsa.found()
-		backends += files('alc/backends/alsa.cpp')
-		dependencies += alsa
-	endif
-	config.set10('HAVE_ALSA', alsa.found())
-
-	# Check to see if we can enable the OSS backend
-	if cxx.has_header('sys/soundcard.h')
-		# See if there's a libossaudio to link against (it doesn't matter if there isn't!)
-		ossLib = cxx.find_library(
-			'ossaudio',
-			required: false
+	backendALSA = get_option('al_backend_alsa')
+	if backendALSA.allowed()
+		# Check to see if we can enable the ALSA backend
+		alsa = dependency(
+			'alsa',
+			method: 'pkg-config',
+			required: backendALSA.enabled(),
 		)
-		backends += files('alc/backends/oss.cpp')
-		dependencies += ossLib
-		config.set10('HAVE_OSS', true)
+		if alsa.found()
+			backends += files('alc/backends/alsa.cpp')
+			dependencies += alsa
+		endif
+		config.set10('HAVE_ALSA', alsa.found())
 	endif
 
-	# Check to see if we can enable the Solaris audio backend
-	if cxx.has_header('sys/audioio.h')
-		backends += files('alc/backends/solaris.cpp')
-		config.set10('HAVE_SOLARIS', true)
+	backendOSS = get_option('al_backend_oss')
+	if backendOSS.allowed()
+		# Check to see if we can enable the OSS backend
+		if cxx.has_header('sys/soundcard.h')
+			# See if there's a libossaudio to link against (it doesn't matter if there isn't!)
+			ossLib = cxx.find_library(
+				'ossaudio',
+				required: backendOSS.enabled(),
+			)
+			backends += files('alc/backends/oss.cpp')
+			dependencies += ossLib
+			config.set10('HAVE_OSS', true)
+		elif backendOSS.enabled()
+			error('Could not find required header for required OSS backend')
+		endif
 	endif
 
-	# Check to see if we can enable the BSD SndIO backend
-	sndIO = dependency(
-		'sndio',
-		method: 'pkg-config',
-		required: false
-	)
-	if sndIO.found()
-		backends += files('alc/backends/sndio.cpp')
-		dependencies += sndIO
+	backendSolaris = get_option('al_backend_solaris')
+	if backendSolaris.allowed()
+		# Check to see if we can enable the Solaris audio backend
+		if cxx.has_header('sys/audioio.h')
+			backends += files('alc/backends/solaris.cpp')
+			config.set10('HAVE_SOLARIS', true)
+		elif backendSolaris.enabled()
+			error('Could not find required header for required Solaris backend')
+		endif
 	endif
-	config.set10('HAVE_SNDIO', sndIO.found())
+
+	backendSndIO = get_option('al_backend_sndio')
+	if backendSndIO.allowed()
+		# Check to see if we can enable the BSD SndIO backend
+		sndIO = dependency(
+			'sndio',
+			method: 'pkg-config',
+			required: backendSndIO.enabled(),
+		)
+		if sndIO.found()
+			backends += files('alc/backends/sndio.cpp')
+			dependencies += sndIO
+		endif
+		config.set10('HAVE_SNDIO', sndIO.found())
+	endif
 else
-	# Check to see if we can enable the WinMM backend
-	winMM = cxx.find_library(
-		'winmm',
-		required: false
+	backendWinMM = get_option('al_backend_winmm')
+	if backendWinMM.allowed()
+		# Check to see if we can enable the WinMM backend
+		winMM = cxx.find_library(
+			'winmm',
+			required: backendWinMM.enabled(),
+		)
+		if winMM.found()
+			backends += files('alc/backends/winmm.cpp')
+			dependencies += winMM
+		endif
+		config.set10('HAVE_WINMM', winMM.found())
+	endif
+
+	backendDSound = get_option('al_backend_dsound')
+	if backendDSound.allowed()
+		# Check to see if we can enable the DirectSound backend
+		dsound = cxx.find_library(
+			'dsound',
+			has_headers: ['dsound.h'],
+			required: backendDSound.enabled(),
+		)
+		if dsound.found()
+			backends += files('alc/backends/dsound.cpp')
+			dependencies += dsound
+		endif
+		config.set10('HAVE_DSOUND', dsound.found())
+	endif
+
+	backendWASAPI = get_option('al_backend_wasapi')
+	if backendWASAPI.allowed()
+		# Check to see if we can enable the WASAPI backend
+		if cxx.has_header('mmdeviceapi.h')
+			backends += files('alc/backends/wasapi.cpp')
+			config.set10('HAVE_WASAPI', true)
+		elif backendWASAPI.enabled()
+			error('Could not find required header for required WASAPI backend')
+		endif
+	endif
+
+	backendOtherIO = get_option('al_backend_otherio')
+	if backendOtherIO.allowed()
+		# Check to see if we can enable the OtherIO backend
+		backends += files('alc/backends/otherio.cpp')
+		config.set10('HAVE_OTHERIO', true)
+	endif
+endif
+
+backendJACK = get_option('al_backend_jack')
+if backendJACK.allowed()
+	# Check to see if we can enable the JACK backend
+	jack = dependency(
+		'jack',
+		method: 'pkg-config',
+		required: backendJACK.enabled(),
 	)
-	if winMM.found()
-		backends += files('alc/backends/winmm.cpp')
-		dependencies += winMM
+	if jack.found()
+		backends += files('alc/backends/jack.cpp')
+		dependencies += jack
 	endif
-	config.set10('HAVE_WINMM', winMM.found())
+	config.set10('HAVE_JACK', jack.found())
+endif
 
-	# Check to see if we can enable the DirectSound backend
-	dsound = cxx.find_library(
-		'dsound',
-		has_headers: ['dsound.h'],
-		required: false
+backendCoreAudio = get_option('al_backend_coreaudio')
+if backendCoreAudio.allowed()
+	# Check to see if we can enable the Apple CoreAudio backend
+	coreAudio = dependency(
+		'CoreAudio',
+		method: 'extraframework',
+		required: backendCoreAudio.enabled(),
 	)
-	if dsound.found()
-		backends += files('alc/backends/dsound.cpp')
-		dependencies += dsound
+	if coreAudio.found()
+		backends += files('alc/backends/coreaudio.cpp')
+		dependencies += coreAudio
 	endif
-	config.set10('HAVE_DSOUND', dsound.found())
+	config.set10('HAVE_COREAUDIO', coreAudio.found())
+endif
 
-	# Check to see if we can enable the WASAPI backend
-	if cxx.has_header('mmdeviceapi.h')
-		backends += files('alc/backends/wasapi.cpp')
-	config.set10('HAVE_WASAPI', true)
+backendOboe = get_option('al_backend_oboe')
+if backendOboe.allowed()
+	# Check to see if we can enable the Android Oboe backend
+	oboe = dependency(
+		'oboe',
+		required: backendOboe.enabled(),
+	)
+	if oboe.found()
+		backends += files('alc/backends/oboe.cpp')
+		dependencies += oboe
 	endif
-
-	# Check to see if we can enable the OtherIO backend
-	backends += files('alc/backends/otherio.cpp')
-	config.set10('HAVE_OTHERIO', true)
+	config.set10('HAVE_OBOE', oboe.found())
 endif
 
-# Check to see if we can enable the JACK backend
-jack = dependency(
-	'jack',
-	method: 'pkg-config',
-	required: false
-)
-if jack.found()
-	backends += files('alc/backends/jack.cpp')
-	dependencies += jack
+backendOpenSL = get_option('al_backend_opensl')
+if backendOpenSL.allowed()
+	# Check to see if we can enable the Android OpenSL backend
+	openSL = dependency(
+		'OpenSLES',
+		required: backendOpenSL.enabled(),
+	)
+	if openSL.found()
+		backends += files('alc/backends/opensl.cpp')
+		dependencies += openSL
+	endif
+	config.set10('HAVE_OPENSL', openSL.found())
 endif
-config.set10('HAVE_JACK', jack.found())
 
-# Check to see if we can enable the Apple CoreAudio backend
-coreAudio = dependency(
-	'CoreAudio',
-	method: 'extraframework',
-	required: false
-)
-if coreAudio.found()
-	backends += files('alc/backends/coreaudio.cpp')
-	dependencies += coreAudio
+backendPortAudio = get_option('al_backend_portaudio')
+if backendPortAudio.allowed()
+	# Check to see if we can enable the PortAudio backend
+	portAudio = dependency(
+		'portaudio-2.0',
+		method: 'pkg-config',
+		required: backendPortAudio.enabled(),
+	)
+	if portAudio.found()
+		backends += files('alc/backends/portaudio.cpp')
+		dependencies += portAudio
+	endif
+	config.set10('HAVE_PORTAUDIO', portAudio.found())
 endif
-config.set10('HAVE_COREAUDIO', coreAudio.found())
 
-# Check to see if we can enable the Android Oboe backend
-oboe = dependency(
-	'oboe',
-	required: false
-)
-if oboe.found()
-	backends += files('alc/backends/oboe.cpp')
-	dependencies += oboe
+backendSDL2 = get_option('al_backend_sdl2')
+backendSDL3 = get_option('al_backend_sdl3')
+if backendSDL2.enabled() and backendSDL3.enabled()
+	error('Cannot enable both SDL2 and SDL3 backends as required - you must choose only one')
 endif
-config.set10('HAVE_OBOE', oboe.found())
 
-# Check to see if we can enable the Android OpenSL backend
-openSL = dependency(
-	'OpenSLES',
-	required: false
-)
-if openSL.found()
-	backends += files('alc/backends/opensl.cpp')
-	dependencies += openSL
+if backendSDL3.allowed()
+	# Check to see if we can enable the SDL3 backend
+	sdl3 = dependency(
+		'sdl3',
+		method: 'pkg-config',
+		required: backendSDL3.enabled(),
+	)
+	if sdl3.found()
+		backends += files('alc/backends/sdl3.cpp')
+		dependencies += sdl3
+	endif
+	config.set10('HAVE_SDL3', sdl3.found())
+else
+	# If the backend is not enabled, make a disabler to help the SDL2 logic
+	sdl3 = disabler()
 endif
-config.set10('HAVE_OPENSL', openSL.found())
 
-# Check to see if we can enable the PortAudio backend
-portAudio = dependency(
-	'portaudio-2.0',
-	method: 'pkg-config',
-	required: false
-)
-if portAudio.found()
-	backends += files('alc/backends/portaudio.cpp')
-	dependencies += portAudio
+# Only try to enable SDL2 if we didn't enable SDL3
+if backendSDL2.allowed() and not sdl3.found()
+	# Check to see if we can enable the SDL2 backend
+	sdl2 = dependency(
+		'sdl2',
+		method: 'pkg-config',
+		required: backendSDL2.enabled(),
+	)
+	if sdl2.found()
+		backends += files('alc/backends/sdl2.cpp')
+		dependencies += sdl2
+	endif
+	config.set10('HAVE_SDL2', sdl2.found())
 endif
-config.set10('HAVE_PORTAUDIO', portAudio.found())
 
-# XXX: Need to gate these checks on whether to enable any SDL backends!
-# # Check to see if we can enable the SDL3 backend
-# sdl3 = dependency(
-# 	'sdl3',
-# 	method: 'pkg-config',
-# 	required: false
-# )
-# if sdl3.found()
-# 	backends += files('alc/backends/sdl3.cpp')
-# 	dependencies += sdl3
-# endif
-# config.set10('HAVE_SDL3', sdl3.found())
-
-# # Check to see if we can enable the SDL2 backend
-# sdl2 = dependency(
-# 	'sdl2',
-# 	method: 'pkg-config',
-# 	required: false
-# )
-# if sdl2.found()
-# 	backends += files('alc/backends/sdl2.cpp')
-# 	dependencies += sdl2
-# endif
-# config.set10('HAVE_SDL2', sdl2.found())
-
-backends += files('alc/backends/wave.cpp')
+backendWave = get_option('al_backend_wave')
+if backendWave.allowed()
+	backends += files('alc/backends/wave.cpp')
+endif
 
 configFiles = []
 
@@ -639,6 +710,10 @@ if host_machine.system() == 'android'
 	)
 endif
 
+# If the user's enabled the utilities, find their dependencies to build them
+utils_dependencies = []
+if buildUtils
+endif
 
 # Build config.h so the library knows its base configuration
 configFiles += configure_file(

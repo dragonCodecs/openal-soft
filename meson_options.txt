@@ -26,3 +26,23 @@ option(
 )
 # Only applicable on macOS
 option('osx_framework', type: 'boolean', value: false, description: 'Build as macOS framework')
+
+# Backend enable options
+option('al_backend_pipewire', type: 'feature', description: 'Build PipeWire backend (auto makes it best try)')
+option('al_backend_pulseaudio', type: 'feature', description: 'Build PulseAudio backend (auto makes it best try)')
+option('al_backend_alsa', type: 'feature', description: 'Build ALSA backend (auto makes it best try)')
+option('al_backend_oss', type: 'feature', description: 'Build OSS backend (auto makes it best try)')
+option('al_backend_solaris', type: 'feature', description: 'Build Solaris backend (auto makes it best try)')
+option('al_backend_sndio', type: 'feature', description: 'Build SndIO backend (auto makes it best try)')
+option('al_backend_winmm', type: 'feature', description: 'Build WinMM backend (auto makes it best try)')
+option('al_backend_dsound', type: 'feature', description: 'Build DirectSound backend (auto makes it best try)')
+option('al_backend_wasapi', type: 'feature', description: 'Build WASAPI backend (auto makes it best try)')
+option('al_backend_otherio', type: 'feature', description: 'Build OtherIO backend (auto makes it best try)')
+option('al_backend_jack', type: 'feature', description: 'Build JACK backend (auto makes it best try)')
+option('al_backend_coreaudio', type: 'feature', description: 'Build CoreAudio backend (auto makes it best try)')
+option('al_backend_oboe', type: 'feature', description: 'Build Android Oboe backend (auto makes it best try)')
+option('al_backend_opensl', type: 'feature', description: 'Build Android OpenSL backend (auto makes it best try)')
+option('al_backend_portaudio', type: 'feature', description: 'Build PortAudio backend (auto makes it best try)')
+option('al_backend_sdl3', type: 'feature', value: 'disabled', description: 'Build SDL3 backend (auto makes it best try)')
+option('al_backend_sdl2', type: 'feature', value: 'disabled', description: 'Build SDL2 backend (auto makes it best try)')
+option('al_backend_wave', type: 'feature', description: 'Build wave writer backend (auto makes it best try)')
