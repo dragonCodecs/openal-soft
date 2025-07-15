@@ -1,0 +1,28 @@
+option('dlopen', type: 'boolean', value: true, description: 'Check for the `dlopen` API for loading optional libraries')
+option('utils', type: 'boolean', value: true, description: 'Build utility programs')
+option('config_util', type: 'boolean', value: true, description: 'Enable building the alsoft-config utility')
+option('examples', type: 'boolean', value: true, description: 'Build example programs')
+option('tests', type: 'boolean', value: true, description: 'Build test programs')
+option('install', type: 'boolean', value: true, description: 'Install main library')
+option('install_config', type: 'boolean', value: true, description: 'Install alsoft.conf sample configuration file')
+option('install_hrtf_data', type: 'boolean', value: true, description: 'Install HRTF data files')
+option('install_ambdec_presets', type: 'boolean', value: true, description: 'Install AmbDec preset files')
+option('install_examples', type: 'boolean', value: true, description: 'Install example programs (alplay, alstream, ...)')
+option(
+	'install_utils',
+	type: 'boolean',
+	value: true,
+	description: 'Install utility programs (openal-info, alsoft-config, ...)'
+)
+# Defaults to enabled on Windows, disabled otherwise
+option('eax', type: 'feature', description: 'Enable legacy EAX extensions')
+option('search_install_datadir', type: 'boolean', value: false, description: 'Search the installation data directory')
+# Only applicable on Windows
+option(
+	'build_router',
+	type: 'boolean',
+	value: false,
+	description: 'Build the router (EXPERIMENTAL; creates OpenAL32.dll and soft_oal.dll)'
+)
+# Only applicable on macOS
+option('osx_framework', type: 'boolean', value: false, description: 'Build as macOS framework')

@@ -160,15 +160,17 @@ if rt.found() and cxx.has_function('clock_gettime', dependencies: rt)
 endif
 
 # Check to see if this system has libdl & dlfcn.h for the dlopen() syscalls
-dl = cxx.find_library(
-	'dl',
-	has_headers: 'dlfcn.h',
-	required: false
-)
-if dl.found() and cxx.has_function('dlopen', dependencies: dl)
-	dependencies += dl
-	config.set10('HAVE_DLFCN_H', libm.found())
-	config.set10('HAVE_LIBDL', libm.found())
+if get_option('dlopen')
+	dl = cxx.find_library(
+		'dl',
+		has_headers: 'dlfcn.h',
+		required: false
+	)
+	if dl.found() and cxx.has_function('dlopen', dependencies: dl)
+		dependencies += dl
+		config.set10('HAVE_DLFCN_H', libm.found())
+		config.set10('HAVE_LIBDL', libm.found())
+	endif
 endif
 
 # Check to see if we have the guiddef.h header or not
