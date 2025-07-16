@@ -698,6 +698,18 @@ configFiles += custom_target(
 
 # Check if we should embed the HRTF data into the library, and if so convert the files
 # into a suitable format
+if get_option('embed_hrtf_data')
+	configFiles += custom_target(
+		'default_hrtf.txt',
+		command: [
+			find_program('bin2h.py', required: true),
+			'-i', '@INPUT@',
+			'-o', '@OUTPUT@',
+		],
+		input: 'hrtf/Default HRTF.mhr',
+		output: 'default_hrtf.txt',
+	)
+endif
 
 # If we're building for Android, set up to use 16KiB pages if possible
 if host_machine.system() == 'android'

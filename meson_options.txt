@@ -46,3 +46,5 @@ option('al_backend_portaudio', type: 'feature', description: 'Build PortAudio ba
 option('al_backend_sdl3', type: 'feature', value: 'disabled', description: 'Build SDL3 backend (auto makes it best try)')
 option('al_backend_sdl2', type: 'feature', value: 'disabled', description: 'Build SDL2 backend (auto makes it best try)')
 option('al_backend_wave', type: 'feature', description: 'Build wave writer backend (auto makes it best try)')
+
+option('embed_hrtf_data', type: 'boolean', value: true, description: 'Embed the HRTF data files (increases library footprint)')
