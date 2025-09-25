@@ -875,7 +875,7 @@ install_headers(
 )
 
 # Define a dependency for subproject usage
-openalDep = declare_dependency(
+openALDep = declare_dependency(
 	link_with: openAL,
 	include_directories: include_directories(
 		'include',
