@@ -40,6 +40,7 @@ isWindows = host_machine.system() == 'windows'
 
 # Extract build options that are used repeatatively
 buildUtils = get_option('utils')
+buildConfigUtil = get_option('config_util')
 buildExamples = get_option('examples')
 
 # If we are building for Windows, then add a bunch of defines that are neded globally
@@ -165,6 +166,7 @@ endif
 
 # Check to see if this system has libdl & dlfcn.h for the dlopen() syscalls
 if get_option('dlopen')
+	# dependency('dl')..
 	dl = cxx.find_library(
 		'dl',
 		has_headers: 'dlfcn.h',
@@ -723,8 +725,67 @@ if host_machine.system() == 'android'
 endif
 
 # If the user's enabled the utilities, find their dependencies to build them
-utils_dependencies = []
+utilsDependencies = []
 if buildUtils
+	libMySOFA = dependency(
+		'libmysofa',
+		method: 'pkg-config',
+		required: false,
+	)
+	utilsDependencies += libMySOFA
+	if buildConfigUtil
+		qt5Widgets = dependency(
+			'Qt5',
+			modules: ['Core', 'GUI', 'Widgets'],
+			required: false,
+		)
+		utilsDependencies += qt5Widgets
+	endif
+endif
+
+examplesDependencies = []
+if buildUtils or buildExamples
+	libSndFile = dependency(
+		'sndfile',
+		method: 'pkg-config',
+		required: false,
+	)
+	utilsDependencies += libSndFile
+	examplesDependencies += libSndFile
+endif
+
+if buildExamples and sdl3.found()
+	libavformat = dependency(
+		'libavformat',
+		method: 'pkg-config',
+		required: false,
+	)
+	libavcodec = dependency(
+		'libavcodec',
+		method: 'pkg-config',
+		required: false,
+	)
+	libavutil = dependency(
+		'libavutil',
+		method: 'pkg-config',
+		required: false,
+	)
+	libswscale = dependency(
+		'libswscale',
+		method: 'pkg-config',
+		required: false,
+	)
+	libswresample = dependency(
+		'libswresample',
+		method: 'pkg-config',
+		required: false,
+	)
+	ffmpeg = [libavformat, libavcodec, libavutil, libswscale, libswresample]
+	haveFFmpeg = libavformat.found() and libavcodec.found() and libavutil.found() and \
+		libswscale.found() and libswresample.found()
+	if haveFFmpeg
+		examplesDependencies += ffmpeg
+	endif
 endif
 
 # Build config.h so the library knows its base configuration
