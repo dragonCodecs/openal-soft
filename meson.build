@@ -882,3 +882,5 @@ openALDep = declare_dependency(
 		'include/AL',
 	),
 )
+meson.override_dependency('OpenAL', openALDep)
+meson.override_dependency('openal', openALDep)
