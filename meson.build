@@ -579,10 +579,10 @@ if backendCoreAudio.allowed()
 		backends += files('alc/backends/coreaudio.cpp')
 		dependencies += coreAudio
 
-		# Newer macOS needs the AudioToolbox framework - try to find it
+		# Newer macOS needs the CoreFoundation and AudioToolbox framework - try to find it
 		dependencies += dependency(
 			'appleframeworks',
-			modules: ['AudioToolbox'],
+			modules: ['CoreFoundation', 'AudioToolbox'],
 			required: false,
 		)
 	endif
