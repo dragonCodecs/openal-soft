@@ -179,11 +179,11 @@ if get_option('dlopen')
 	endif
 endif
 
-# Check to see if we have the guiddef.h header or not
+# Check to see if we have the guiddef.h header or not and if it's usable
 config.set10('HAVE_GUIDDEF_H', cxx.check_header('guiddef.h'))
 
-# Check to see if we have the cpuid.h header or not
-if cxx.has_header('cpuid.h')
+# Check to see if we have the cpuid.h header or not and if it's usable
+if cxx.check_header('cpuid.h')
 	config.set10('HAVE_CPUID_H', true)
 	# Check to see if we have GCC's `__get_cpuid()` intrinsic
 	config.set10(
@@ -199,8 +199,8 @@ int main()
 	)
 endif
 
-# Check to see if we have the intrin.h header or not
-if cxx.has_header('intrin.h')
+# Check to see if we have the intrin.h header or not and if it's usable
+if cxx.check_header('intrin.h')
 	config.set10('HAVE_INTRIN_H', true)
 	# Check to see if we have the `__cpuid()` intrinsic
 	config.set10(
