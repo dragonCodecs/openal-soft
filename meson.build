@@ -578,6 +578,13 @@ if backendCoreAudio.allowed()
 	if coreAudio.found()
 		backends += files('alc/backends/coreaudio.cpp')
 		dependencies += coreAudio
+
+		# Newer macOS needs the AudioToolbox framework - try to find it
+		dependencies += dependency(
+			'appleframeworks',
+			modules: ['AudioToolbox'],
+			required: false,
+		)
 	endif
 	config.set10('HAVE_COREAUDIO', coreAudio.found())
 endif
@@ -884,3 +891,27 @@ openALDep = declare_dependency(
 )
 meson.override_dependency('OpenAL', openALDep)
 meson.override_dependency('openal', openALDep)
+
+if buildUtils
+
+	if libSndFile.found()
+	endif
+
+	if libMySOFA.found()
+	endif
+
+	if buildConfigUtil
+	endif
+endif
+
+if buildExamples
+
+	if libSndFile.found()
+	endif
+
+	if sdl3.found()
+
+		if haveFFmpeg
+		endif
+	endif
+endif
